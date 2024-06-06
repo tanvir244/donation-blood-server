@@ -31,6 +31,7 @@ async function run() {
   try {
 
     const userDataCollection = client.db('bloodDonation').collection('userData');
+    const allRequestsCollection = client.db('bloodDonation').collection('createAllDonetionRequests');
 
 
     // ========
@@ -38,6 +39,12 @@ async function run() {
         const item = req.body;
         const result = await userDataCollection.insertOne(item);
         res.send(result);
+    })
+
+    app.post('/create_all_requests', async(req, res) => {
+      const request = req.body;
+      const result = await allRequestsCollection.insertOne(request);
+      res.send(result);
     })
 
     // Connect the client to the server	(optional starting in v4.7)
