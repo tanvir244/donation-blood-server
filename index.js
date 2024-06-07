@@ -7,10 +7,10 @@ const port = process.env.PORT || 5000;
 
 // middleware 
 app.use(cors({
-    origin: [
-      'http://localhost:5173'
-    ]
-  }));
+  origin: [
+    'http://localhost:5173'
+  ]
+}));
 app.use(express.json());
 
 // console.log(process.env.DB_USER);
@@ -35,31 +35,53 @@ async function run() {
 
 
     // ========
-    app.post('/user_data', async(req, res) => {
-        const item = req.body;
-        const result = await userDataCollection.insertOne(item);
-        res.send(result);
+    app.post('/user_data', async (req, res) => {
+      const item = req.body;
+      const result = await userDataCollection.insertOne(item);
+      res.send(result);
     })
 
-    app.post('/create_all_requests', async(req, res) => {
+    app.post('/create_all_requests', async (req, res) => {
       const request = req.body;
       const result = await allRequestsCollection.insertOne(request);
       res.send(result);
     })
 
-    app.get('/donation_requests', async(req, res) => {
+    app.get('/donation_requests', async (req, res) => {
       const query = {};
       const options = {
-        projection: {recipient_name: 1, division: 1, district: 1, upazila: 1, donation_date: 1, donation_time: 1, donation_status: 1 }
+        projection: { recipient_name: 1, division: 1, district: 1, upazila: 1, donation_date: 1, donation_time: 1, donation_status: 1 },
+        filter: { donation_status: 'pending' }
       }
-      const result = await allRequestsCollection.find( query, options).toArray();
-      res.send(result);
+      const results = await allRequestsCollection.find(query, options).toArray();
+      // Filter out any remaining "inprogress" requests from the results
+      const filteredResults = results.filter(item => item.donation_status === 'pending');
+      res.send(filteredResults);
     })
 
-    // app.get('/donation_requests', async(req, res) => {
+    // app.get('/requests_details', async(req, res) => {
     //   const result = await allRequestsCollection.find().toArray();
     //   res.send(result);
     // })
+
+    app.get('/requests_details/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await allRequestsCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.patch('/change_request_status/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: {
+          donation_status: 'inprogress'
+        }
+      }
+      const result = await allRequestsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
@@ -76,9 +98,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Blood donation server is running');
+  res.send('Blood donation server is running');
 })
 
 app.listen(port, () => {
-    console.log(`Blood donation server is running on port: ${port}`)
+  console.log(`Blood donation server is running on port: ${port}`)
 }) 
