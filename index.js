@@ -41,6 +41,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/user_data/:email', async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const result = await userDataCollection.findOne(query);
+      res.send(result);
+    })
+
     app.post('/create_all_requests', async (req, res) => {
       const request = req.body;
       const result = await allRequestsCollection.insertOne(request);
@@ -59,10 +66,6 @@ async function run() {
       res.send(filteredResults);
     })
 
-    // app.get('/requests_details', async(req, res) => {
-    //   const result = await allRequestsCollection.find().toArray();
-    //   res.send(result);
-    // })
 
     app.get('/requests_details/:id', async (req, res) => {
       const id = req.params.id;
@@ -82,6 +85,30 @@ async function run() {
       const result = await allRequestsCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
+
+    app.put('/update_my_profile/:email', async(req, res) => {
+      const email = req.params.email;
+      const filter = {email: email};
+      const options = {upsert: true};
+      const updateData = req.body;
+      const data = {
+        $set: {
+          name: updateData.name,
+          email: updateData.email,
+          division: updateData.division,
+          district: updateData.district,
+          upazila: updateData.upazila,
+          blood: updateData.blood
+        }
+      }
+      const result = await userDataCollection.updateOne(filter, data, options);
+      res.send(result);
+    })
+
+
+
+
+
 
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
