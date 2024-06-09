@@ -32,7 +32,7 @@ async function run() {
 
     const userDataCollection = client.db('bloodDonation').collection('userData');
     const allRequestsCollection = client.db('bloodDonation').collection('createAllDonetionRequests');
-
+    const donorInfoCollection = client.db('bloodDonation').collection('donorInfo');
 
     // ========
     app.post('/user_data', async (req, res) => {
@@ -54,6 +54,24 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/store_donar_info', async(req, res) => {
+      const donorInfo = req.body;
+      const result = await donorInfoCollection.insertOne(donorInfo);
+      res.send(result);
+    })
+
+    app.get('/store_donor_info', async(req, res) => {
+      const result = await donorInfoCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/store_donor_info/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {id: id};
+      const result = await donorInfoCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.get('/donation_requests', async (req, res) => {
       const query = {};
       const options = {
@@ -66,6 +84,12 @@ async function run() {
       res.send(filteredResults);
     })
 
+    app.get('/my_donation_requests/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { requester_email: email };
+      const result = await allRequestsCollection.find(query).toArray();
+      res.send(result);
+  });
 
     app.get('/requests_details/:id', async (req, res) => {
       const id = req.params.id;
@@ -74,6 +98,7 @@ async function run() {
       res.send(result);
     })
 
+    // change status to inprogress
     app.patch('/change_request_status/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
@@ -86,6 +111,34 @@ async function run() {
       res.send(result);
     })
 
+    // change status to done
+    app.patch('/change_status_done/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: {
+          donation_status: 'done'
+        }
+      }
+      const result = await allRequestsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    // change status to cancel
+    app.patch('/change_status_cancel/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: {
+          donation_status: 'cancel'
+        }
+      }
+      const result = await allRequestsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+
+    // upadate data 
     app.put('/update_my_profile/:email', async(req, res) => {
       const email = req.params.email;
       const filter = {email: email};
@@ -105,8 +158,38 @@ async function run() {
       res.send(result);
     })
 
+    app.put('/update_request/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const options = {upsert: true};
+      const updateData = req.body;
+      const data = {
+        $set : {
+          requester_name: updateData.requester_name,
+          requester_email: updateData.requester_email,
+          recipient_name: updateData.recipient_name,
+          division: updateData.division,
+          district: updateData.district,
+          upazila: updateData.upazila,
+          blood: updateData.blood,
+          donation_date: updateData.donation_date,
+          donation_time: updateData.donation_time,
+          hospital_name: updateData.hospital_name,
+          full_address: updateData.full_address,
+          request_message: updateData.request_message,
+          donation_status: updateData.donation_status
+        }
+      } 
+      const result = await allRequestsCollection.updateOne(filter, data, options);
+      res.send(result);
+    })
 
-
+    app.delete('/request_delete/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await allRequestsCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
 
