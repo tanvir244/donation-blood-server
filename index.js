@@ -41,6 +41,11 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/user_data', async(req, res) => {
+      const result = await userDataCollection.find().toArray();
+      res.send(result);
+    })
+
     app.get('/user_data/:email', async(req, res) => {
       const email = req.params.email;
       const query = {email: email};
@@ -51,6 +56,11 @@ async function run() {
     app.post('/create_all_requests', async (req, res) => {
       const request = req.body;
       const result = await allRequestsCollection.insertOne(request);
+      res.send(result);
+    })
+
+    app.get('/all_donation_requests', async(req, res) => {
+      const result = await allRequestsCollection.find().toArray();
       res.send(result);
     })
 
