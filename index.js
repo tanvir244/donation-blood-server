@@ -173,6 +173,32 @@ async function run() {
       res.send(result);
     })
 
+    // change role by admin
+    app.patch('/make_role_volunteer/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateRole = {
+        $set: {
+          role: 'volunteer'
+        }
+      }
+      const result = await userDataCollection.updateOne(filter, updateRole);
+      res.send(result);
+    })
+
+    // change role by admin
+    app.patch('/make_role_admin/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateRole = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userDataCollection.updateOne(filter, updateRole);
+      res.send(result);
+    })
+
     // upadate data 
     app.put('/update_my_profile/:email', async(req, res) => {
       const email = req.params.email;
