@@ -147,6 +147,31 @@ async function run() {
       res.send(result);
     })
 
+    // change status by admin
+    app.patch('/update_status_by_admin/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updateValue = {
+        $set: {
+          status: 'blocked'
+        }
+      } 
+      const result = await userDataCollection.updateOne(filter, updateValue);
+      res.send(result);
+    })
+
+    // change status by admin
+    app.patch('/update_status_by_admin_active/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateStatus = {
+        $set: {
+          status: 'active'
+        }
+      }
+      const result = await userDataCollection.updateOne(filter, updateStatus);
+      res.send(result);
+    })
 
     // upadate data 
     app.put('/update_my_profile/:email', async(req, res) => {
