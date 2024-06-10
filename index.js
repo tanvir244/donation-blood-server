@@ -33,6 +33,7 @@ async function run() {
     const userDataCollection = client.db('bloodDonation').collection('userData');
     const allRequestsCollection = client.db('bloodDonation').collection('createAllDonetionRequests');
     const donorInfoCollection = client.db('bloodDonation').collection('donorInfo');
+    const allBlogCollection = client.db('bloodDonation').collection('allBlogs');
 
     // ========
     app.post('/user_data', async (req, res) => {
@@ -41,14 +42,14 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/user_data', async(req, res) => {
+    app.get('/user_data', async (req, res) => {
       const result = await userDataCollection.find().toArray();
       res.send(result);
     })
 
-    app.get('/user_data/:email', async(req, res) => {
+    app.get('/user_data/:email', async (req, res) => {
       const email = req.params.email;
-      const query = {email: email};
+      const query = { email: email };
       const result = await userDataCollection.findOne(query);
       res.send(result);
     })
@@ -59,25 +60,25 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/all_donation_requests', async(req, res) => {
+    app.get('/all_donation_requests', async (req, res) => {
       const result = await allRequestsCollection.find().toArray();
       res.send(result);
     })
 
-    app.post('/store_donar_info', async(req, res) => {
+    app.post('/store_donar_info', async (req, res) => {
       const donorInfo = req.body;
       const result = await donorInfoCollection.insertOne(donorInfo);
       res.send(result);
     })
 
-    app.get('/store_donor_info', async(req, res) => {
+    app.get('/store_donor_info', async (req, res) => {
       const result = await donorInfoCollection.find().toArray();
       res.send(result);
     })
 
-    app.get('/store_donor_info/:id', async(req, res) => {
+    app.get('/store_donor_info/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {id: id};
+      const query = { id: id };
       const result = await donorInfoCollection.find(query).toArray();
       res.send(result);
     })
@@ -99,13 +100,54 @@ async function run() {
       const query = { requester_email: email };
       const result = await allRequestsCollection.find(query).toArray();
       res.send(result);
-  });
+    });
+
+    app.get('/all_donation_requests', async (req, res) => {
+      const result = await allRequestsCollection.find().toArray();
+      res.send(result);
+    })
 
     app.get('/requests_details/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await allRequestsCollection.findOne(query);
       res.send(result);
+    })
+
+    app.post('/all_blogs', async (req, res) => {
+      const blog = req.body;
+      const result = await allBlogCollection.insertOne(blog);
+      res.send(result);
+    })
+
+    app.get('/all_blogs', async(req, res) => {
+      const result = await allBlogCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/expected_blog/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await allBlogCollection.findOne(query);
+      res.send(result);
+    })
+
+    // app.get('/donation_requests', async (req, res) => {
+    //   const query = {};
+    //   const options = {
+    //     projection: { recipient_name: 1, division: 1, district: 1, upazila: 1, donation_date: 1, donation_time: 1, donation_status: 1 },
+    //     filter: { donation_status: 'pending' }
+    //   }
+    //   const results = await allRequestsCollection.find(query, options).toArray();
+    //   // Filter out any remaining "inprogress" requests from the results
+    //   const filteredResults = results.filter(item => item.donation_status === 'pending');
+    //   res.send(filteredResults);
+    // })
+
+    app.get('/published_blogs', async(req, res) => {
+      const result = await allBlogCollection.find().toArray();
+      const filterPublished = result.filter(blog => blog.status === 'published');
+      res.send(filterPublished);
     })
 
     // change status to inprogress
@@ -148,22 +190,22 @@ async function run() {
     })
 
     // change status by admin
-    app.patch('/update_status_by_admin/:id', async(req, res) => {
+    app.patch('/update_status_by_admin/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)}
+      const filter = { _id: new ObjectId(id) }
       const updateValue = {
         $set: {
           status: 'blocked'
         }
-      } 
+      }
       const result = await userDataCollection.updateOne(filter, updateValue);
       res.send(result);
     })
 
     // change status by admin
-    app.patch('/update_status_by_admin_active/:id', async(req, res) => {
+    app.patch('/update_status_by_admin_active/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updateStatus = {
         $set: {
           status: 'active'
@@ -174,9 +216,9 @@ async function run() {
     })
 
     // change role by admin
-    app.patch('/make_role_volunteer/:id', async(req, res) => {
+    app.patch('/make_role_volunteer/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updateRole = {
         $set: {
           role: 'volunteer'
@@ -187,9 +229,9 @@ async function run() {
     })
 
     // change role by admin
-    app.patch('/make_role_admin/:id', async(req, res) => {
+    app.patch('/make_role_admin/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updateRole = {
         $set: {
           role: 'admin'
@@ -199,11 +241,37 @@ async function run() {
       res.send(result);
     })
 
+    // change blog status to Unpublish
+    app.patch('/update_blog_status/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateStatus = {
+        $set: {
+          status: 'published'
+        }
+      }
+      const result = await allBlogCollection.updateOne(filter, updateStatus);
+      res.send(result);
+    })
+
+    // change blog status to Publish
+    app.patch('/update_blog_status_publish/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateStatus = {
+        $set: {
+          status: 'draft'
+        }
+      }
+      const result = await allBlogCollection.updateOne(filter, updateStatus);
+      res.send(result);
+    })
+ 
     // upadate data 
-    app.put('/update_my_profile/:email', async(req, res) => {
+    app.put('/update_my_profile/:email', async (req, res) => {
       const email = req.params.email;
-      const filter = {email: email};
-      const options = {upsert: true};
+      const filter = { email: email };
+      const options = { upsert: true };
       const updateData = req.body;
       const data = {
         $set: {
@@ -219,13 +287,13 @@ async function run() {
       res.send(result);
     })
 
-    app.put('/update_request/:id', async(req, res) => {
+    app.put('/update_request/:id', async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
-      const options = {upsert: true};
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
       const updateData = req.body;
       const data = {
-        $set : {
+        $set: {
           requester_name: updateData.requester_name,
           requester_email: updateData.requester_email,
           recipient_name: updateData.recipient_name,
@@ -240,18 +308,40 @@ async function run() {
           request_message: updateData.request_message,
           donation_status: updateData.donation_status
         }
-      } 
+      }
       const result = await allRequestsCollection.updateOne(filter, data, options);
       res.send(result);
     })
 
-    app.delete('/request_delete/:id', async(req, res) => {
+    app.put('/update_blog/:id', async(req, res) =>{
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const filter = {_id: new ObjectId(id)};
+      const options = {upsert: true};
+      const updatedData = req.body;
+      const data = {
+        $set: {
+          title: updatedData.title,
+          photo: updatedData.photo,
+          detail_content: updatedData.detail_content
+        }
+      } 
+      const result = await allBlogCollection.updateOne(filter, data, options);
+      res.send(result);
+    })
+
+    app.delete('/request_delete/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
       const result = await allRequestsCollection.deleteOne(query);
       res.send(result);
     })
 
+    app.delete('/delete_blog/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await allBlogCollection.deleteOne(query);
+      res.send(result);
+    })
 
 
     // Connect the client to the server	(optional starting in v4.7)
