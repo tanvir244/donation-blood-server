@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 // middleware 
 app.use(cors({
   origin: [
-    'http://localhost:5173'
+    'https://blog-portal-auth.web.app'
   ]
 }));
 app.use(express.json());
