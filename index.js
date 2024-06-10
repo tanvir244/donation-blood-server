@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
@@ -35,6 +36,32 @@ async function run() {
     const donorInfoCollection = client.db('bloodDonation').collection('donorInfo');
     const allBlogCollection = client.db('bloodDonation').collection('allBlogs');
 
+    // jwt related api ===============================
+    // app.post('/jwt', async(req, res) => {
+    //   const user = req.body;
+    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    //     expiresIn: '1h'
+    //   })
+    //   res.send({token});
+    // })
+
+    // middlewares 
+    // const verifyToken = (req, res, next) => {
+    //   console.log('inside verify token', req.headers.authorization);
+    //   if(!req.headers.authorization) {
+    //     return res.status(401).send({message: 'forbidden access'});
+    //   }
+    //   const token = req.headers.authorization.split(' ')[1];
+    //   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    //     if(err){
+    //       return res.status(401).send({message: 'forbidden access'})
+    //     }
+    //     req.decoded = decoded;
+    //     next()
+    //   })
+    // }
+    
+    
     // ========
     app.post('/user_data', async (req, res) => {
       const item = req.body;
@@ -43,6 +70,7 @@ async function run() {
     })
 
     app.get('/user_data', async (req, res) => {
+      console.log(req.headers);
       const result = await userDataCollection.find().toArray();
       res.send(result);
     })
